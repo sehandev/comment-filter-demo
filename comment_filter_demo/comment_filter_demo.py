@@ -143,6 +143,7 @@ class State(rx.State):
     def formatted_comment_history(self) -> List[FormattedCommentHistoryEntry]:
         formatted_history = []
         for entry in self.comment_history:
+            print(entry)
             entry_data = FormattedCommentHistoryEntry(
                 video_title=entry.video_title,
                 comment=entry.comment,
@@ -156,6 +157,7 @@ class State(rx.State):
                     entry_data.categories.append(
                         CategoryInfo(name=category_name, reason=reason)
                     )
+            print(entry_data)
             formatted_history.append(entry_data)
         return formatted_history
 
@@ -254,16 +256,16 @@ def history_page() -> rx.Component:
                 State.formatted_comment_history,
                 lambda entry_data: rx.vstack(
                     rx.text(f"Video Title: {entry_data.video_title}"),
-                    rx.text(f"Comment: {entry_data.comment}"),
                     rx.video(
                         url=entry_data.video_url,
                         width="400px",
                         height="auto",
                     ),
+                    rx.text(f"Comment: {entry_data.comment}"),
                     rx.foreach(
                         entry_data.categories,
                         lambda category_info: rx.hstack(
-                            rx.text(f"{category_info.name.replace('_', ' ').title()}:"),
+                            rx.text(f"{category_info.name.replace('_', ' ')}:"),
                             rx.text(category_info.reason),
                         ),
                     ),
