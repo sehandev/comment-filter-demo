@@ -1,9 +1,13 @@
 """Welcome to Reflex! This file outlines the steps to create a basic app."""
 
 import reflex as rx
+from dotenv import load_dotenv
 from sqlalchemy.orm import Session
 
+from comment_filter_demo.ai_manager import AI_Manager
 from comment_filter_demo.db import CommentHistory, create_db_and_tables, engine
+
+load_dotenv()
 
 
 class State(rx.State):
@@ -13,6 +17,8 @@ class State(rx.State):
     video_description: str
     comment: str
     comment_history: list[CommentHistory] = []
+
+    ai_manager: AI_Manager = AI_Manager(model_name="gemini-2.5-flash")
 
     spam_results: dict[str, bool] = {
         "sexual_content": False,
@@ -34,56 +40,91 @@ class State(rx.State):
     }
 
     def run_spam_filter(self):
-        # This is where the AI logic would go.
-        # For now, let's just simulate some results.
-        if "sex" in self.comment.lower():
+        # Use the AI_Manager to get results
+        # For now, keep the mock logic for demonstration
+        self.ai_manager.model_name = "gemini-2.5-flash"  # Example, can be dynamic
+        response = self.ai_manager.get_ai_response(self.comment)
+
+        if "sex" in self.comment.lower() or "sexual" in response.lower():
             self.spam_results["sexual_content"] = True
-            self.spam_reasons["sexual_content"] = "Comment contains sexual keywords."
+            self.spam_reasons["sexual_content"] = (
+                "Comment contains sexual keywords."
+                if "sex" in self.comment.lower()
+                else "AI detected sexual content."
+            )
         else:
             self.spam_results["sexual_content"] = False
             self.spam_reasons["sexual_content"] = ""
 
-        if "hate" in self.comment.lower():
+        if "hate" in self.comment.lower() or "hate speech" in response.lower():
             self.spam_results["hate_speech"] = True
-            self.spam_reasons["hate_speech"] = "Comment contains hate speech keywords."
+            self.spam_reasons["hate_speech"] = (
+                "Comment contains hate speech keywords."
+                if "hate" in self.comment.lower()
+                else "AI detected hate speech."
+            )
         else:
             self.spam_results["hate_speech"] = False
             self.spam_reasons["hate_speech"] = ""
 
-        if "private" in self.comment.lower():
+        if (
+            "private" in self.comment.lower()
+            or "private information" in response.lower()
+        ):
             self.spam_results["private_info"] = True
-            self.spam_reasons["private_info"] = "Comment contains private information."
+            self.spam_reasons["private_info"] = (
+                "Comment contains private information."
+                if "private" in self.comment.lower()
+                else "AI detected private information."
+            )
         else:
             self.spam_results["private_info"] = False
             self.spam_reasons["private_info"] = ""
 
-        if "graphic" in self.comment.lower():
+        if "graphic" in self.comment.lower() or "graphic content" in response.lower():
             self.spam_results["graphic_content"] = True
-            self.spam_reasons["graphic_content"] = "Comment contains graphic content."
+            self.spam_reasons["graphic_content"] = (
+                "Comment contains graphic content."
+                if "graphic" in self.comment.lower()
+                else "AI detected graphic content."
+            )
         else:
             self.spam_results["graphic_content"] = False
             self.spam_reasons["graphic_content"] = ""
 
-        if "violence" in self.comment.lower():
+        if "violence" in self.comment.lower() or "violence" in response.lower():
             self.spam_results["violence"] = True
             self.spam_reasons["violence"] = (
                 "Comment contains violence related keywords."
+                if "violence" in self.comment.lower()
+                else "AI detected violence."
             )
         else:
             self.spam_results["violence"] = False
             self.spam_reasons["violence"] = ""
 
-        if "spam" in self.comment.lower():
+        if (
+            "spam" in self.comment.lower()
+            or "scam" in self.comment.lower()
+            or "spam" in response.lower()
+            or "scam" in response.lower()
+        ):
             self.spam_results["spam_or_scam"] = True
-            self.spam_reasons["spam_or_scam"] = "Comment contains spam keywords."
+            self.spam_reasons["spam_or_scam"] = (
+                "Comment contains spam keywords."
+                if "spam" in self.comment.lower() or "scam" in self.comment.lower()
+                else "AI detected spam or scam."
+            )
         else:
             self.spam_results["spam_or_scam"] = False
             self.spam_reasons["spam_or_scam"] = ""
 
-        if "impersonate" in self.comment.lower():
+        if "impersonate" in self.comment.lower() or "impersonation" in response.lower():
             self.spam_results["impersonation"] = True
             self.spam_reasons["impersonation"] = (
                 "Comment contains impersonation keywords."
+                if "impersonate" in self.comment.lower()
+                else "AI detected impersonation."
             )
         else:
             self.spam_results["impersonation"] = False
