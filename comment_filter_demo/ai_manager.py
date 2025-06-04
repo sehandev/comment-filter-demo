@@ -43,7 +43,7 @@ class AI_Manager:
             "snapshot": "claude-opus-4-20250514",
         },
     }
-    model_name: str = "gemini-2.5-flash"
+    model_name: str = "gemini-2.5-pro"
     api_key: dict[str, str] = {
         "openai": "",
         "gemini": "",

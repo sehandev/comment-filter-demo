@@ -3,7 +3,7 @@ from comment_filter_demo.category import Category
 
 
 class CommentFilter:
-    def __init__(self, model_name: str = "gemini-2.5-flash"):
+    def __init__(self, model_name: str = "gemini-2.5-pro"):
         self.model_name = model_name
 
     def filter(

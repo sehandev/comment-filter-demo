@@ -34,7 +34,7 @@ class State(rx.State):
     comment: str
     comment_history: list[CommentHistory] = []
 
-    selected_model: str = "gemini-2.5-flash"
+    selected_model: str = "gemini-2.5-pro"
     available_models: list[str] = list(AI_Manager.available_model_dict.keys())
 
     spam_results: dict[str, bool] = {
