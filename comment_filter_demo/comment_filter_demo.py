@@ -23,6 +23,7 @@ class FormattedCommentHistoryEntry(BaseModel):
     comment: str
     video_url: str
     categories: List[CategoryInfo]
+    id: int
 
 
 class State(rx.State):
@@ -135,6 +136,18 @@ class State(rx.State):
             session.add(history_entry)
             session.commit()
 
+    def delete_comment_history(self, entry_id: int):
+        with Session(engine) as session:
+            entry_to_delete = (
+                session.query(CommentHistory)
+                .filter(CommentHistory.id == entry_id)
+                .first()
+            )
+            if entry_to_delete:
+                session.delete(entry_to_delete)
+                session.commit()
+                self.load_comment_history()  # Reload the history after deletion
+
     def load_comment_history(self):
         with Session(engine) as session:
             self.comment_history = session.query(CommentHistory).all()
@@ -143,12 +156,12 @@ class State(rx.State):
     def formatted_comment_history(self) -> List[FormattedCommentHistoryEntry]:
         formatted_history = []
         for entry in self.comment_history:
-            print(entry)
             entry_data = FormattedCommentHistoryEntry(
                 video_title=entry.video_title,
                 comment=entry.comment,
                 video_url=entry.video_url,
                 categories=[],
+                id=entry.id,
             )
             for category_name in self.category_enabled.keys():
                 is_spam = getattr(entry, category_name)
@@ -157,7 +170,6 @@ class State(rx.State):
                     entry_data.categories.append(
                         CategoryInfo(name=category_name, reason=reason)
                     )
-            print(entry_data)
             formatted_history.append(entry_data)
         return formatted_history
 
@@ -267,6 +279,12 @@ def history_page() -> rx.Component:
                         lambda category_info: rx.hstack(
                             rx.text(f"{category_info.name.replace('_', ' ')}:"),
                             rx.text(category_info.reason),
+                        ),
+                    ),
+                    rx.button(
+                        "Remove",
+                        on_click=lambda entry_id=entry_data.id: State.delete_comment_history(
+                            entry_id
                         ),
                     ),
                     rx.divider(),
