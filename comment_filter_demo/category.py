@@ -61,8 +61,19 @@ class Category:
     def get_terrorism_promotion_prompt(self, comment: str, video_title: str) -> str:
         return f"Given the video title: '{video_title}', is the following comment terrorism promotion content? Reply with 'True' or 'False'. Comment: {comment}"
 
-    def get_spam_or_confusion_prompt(self, comment: str, video_title: str) -> str:
-        return f"Given the video title: '{video_title}', is the following comment spam or confusion inducing content? Reply with 'True' or 'False'. Comment: {comment}"
+    def get_spam_or_confusion_prompt(self, video_title: str, comment: str) -> str:
+        return f"""
+        Is the following comment spam or confusing content?
+
+        Video Title: 백종원은 회생할 수 있을까? 백종원과 미디어가 서로를 이용하는 법!
+        Comment: I am an ugly bag of mostly water.
+        Result: True
+        Reason: The comment "I am an ugly bag of mostly water" is completely irrelevant to the video's title, "Can Baek Jong-won recover? How Baek Jong-won and the media use each other!" It appears to be a random, nonsensical statement with no connection to the discussion, making it confusing and potentially spam-like.
+        
+        Video Title: {video_title}
+        Comment: {comment}
+        Result: 
+        """
 
     def get_all_prompts(self) -> dict:
         return {
