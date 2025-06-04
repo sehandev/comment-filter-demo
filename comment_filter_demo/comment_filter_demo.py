@@ -105,6 +105,7 @@ class State(rx.State):
         with Session(engine) as session:
             history_entry = CommentHistory(
                 video_title=self.video_title,
+                video_url=self.video_url,
                 comment=self.comment,
                 sexual_content=self.spam_results["sexual_content"],
                 sexual_content_reason=self.spam_reasons["sexual_content"],
