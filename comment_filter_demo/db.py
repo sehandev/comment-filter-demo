@@ -6,6 +6,7 @@ from sqlmodel import Field, SQLModel, create_engine
 class CommentHistory(SQLModel, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
     video_title: str
+    video_url: str
     comment: str
     sexual_content: bool
     sexual_content_reason: str

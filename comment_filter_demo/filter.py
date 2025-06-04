@@ -3,8 +3,8 @@ from comment_filter_demo.category import Category
 
 
 class CommentFilter:
-    def __init__(self):
-        pass
+    def __init__(self, model_name: str = "gemini-2.5-flash"):
+        self.model_name = model_name
 
     def filter(
         self,
@@ -12,7 +12,7 @@ class CommentFilter:
         comment: str,
         category: str,
     ) -> tuple[bool, str]:
-        ai_manager = AI_Manager(model_name="gemini-2.5-flash")  # Use a default model
+        ai_manager = AI_Manager(model_name=self.model_name)
         category_instance = Category()
 
         prompt = category_instance.get_prompt(category, comment, video_title)
