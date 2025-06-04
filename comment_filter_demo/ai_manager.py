@@ -55,7 +55,7 @@ class AI_Manager:
             raise ValueError(f"Invalid model: {model_name}")
         self.model_name = model_name
         self.api_key["openai"] = os.getenv("OPENAI_API_KEY", "")
-        self.api_key["gemini"] = os.getenv("GEMINI_API_KEY", "")
+        self.api_key["gemini"] = os.getenv("GOOGLE_API_KEY", "")
         self.api_key["anthropic"] = os.getenv("ANTHROPIC_API_KEY", "")
 
     def validate_model(self, model_name: str) -> bool:
@@ -82,7 +82,6 @@ class AI_Manager:
         return response.choices[0].message.content
 
     def get_response_gemini(self, prompt: str) -> str:
-        genai.configure(api_key=self.api_key["gemini"])
         client = genai.Client(api_key=self.api_key["gemini"])
         response = client.models.generate_content(
             model=self.available_model_dict[self.model_name]["snapshot"],
@@ -120,7 +119,7 @@ def validate_openai_api_key() -> bool:
 
 
 def validate_gemini_api_key() -> bool:
-    api_key = os.getenv("GEMINI_API_KEY")
+    api_key = os.getenv("GOOGLE_API_KEY")
     return bool(api_key)
 
 

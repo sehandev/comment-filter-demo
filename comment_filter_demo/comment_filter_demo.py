@@ -1,11 +1,12 @@
-"""Welcome to Reflex! This file outlines the steps to create a basic app."""
+from typing import Optional
 
 import reflex as rx
 from dotenv import load_dotenv
 from sqlalchemy.orm import Session
 
-from comment_filter_demo.ai_manager import AI_Manager
+from comment_filter_demo.category import Category
 from comment_filter_demo.db import CommentHistory, create_db_and_tables, engine
+from comment_filter_demo.filter import CommentFilter
 
 load_dotenv()
 
@@ -18,117 +19,50 @@ class State(rx.State):
     comment: str
     comment_history: list[CommentHistory] = []
 
-    ai_manager: AI_Manager = AI_Manager(model_name="gemini-2.5-flash")
-
-    spam_results: dict[str, bool] = {
-        "sexual_content": False,
-        "hate_speech": False,
-        "private_info": False,
-        "graphic_content": False,
-        "violence": False,
-        "spam_or_scam": False,
-        "impersonation": False,
+    spam_results: dict[str, Optional[bool]] = {
+        "sexual_content": None,
+        "violence_or_abusive": None,
+        "hate_or_malicious": None,
+        "harassment_or_bullying": None,
+        "harmful_or_dangerous_acts": None,
+        "misinformation": None,
+        "child_abuse": None,
+        "terrorism_promotion": None,
+        "spam_or_confusion": None,
     }
     spam_reasons: dict[str, str] = {
         "sexual_content": "",
-        "hate_speech": "",
-        "private_info": "",
-        "graphic_content": "",
-        "violence": "",
-        "spam_or_scam": "",
-        "impersonation": "",
+        "violence_or_abusive": "",
+        "hate_or_malicious": "",
+        "harassment_or_bullying": "",
+        "harmful_or_dangerous_acts": "",
+        "misinformation": "",
+        "child_abuse": "",
+        "terrorism_promotion": "",
+        "spam_or_confusion": "",
     }
 
     def run_spam_filter(self):
-        # Use the AI_Manager to get results
-        # For now, keep the mock logic for demonstration
-        self.ai_manager.model_name = "gemini-2.5-flash"  # Example, can be dynamic
-        response = self.ai_manager.get_ai_response(self.comment)
+        comment_filter_instance = CommentFilter()
+        category_instance = Category()
 
-        if "sex" in self.comment.lower() or "sexual" in response.lower():
-            self.spam_results["sexual_content"] = True
-            self.spam_reasons["sexual_content"] = (
-                "Comment contains sexual keywords."
-                if "sex" in self.comment.lower()
-                else "AI detected sexual content."
+        for category_name in category_instance.get_all_prompts():
+            is_spam = comment_filter_instance.filter(
+                self.video_title,
+                self.video_description,
+                self.comment,
+                category_name,
             )
-        else:
-            self.spam_results["sexual_content"] = False
-            self.spam_reasons["sexual_content"] = ""
+            # Currently, the filter method only returns a boolean, not a reason.
+            # You might want to extend CommentFilter to return a reason as well.
+            reason = (
+                "AI filtered based on category criteria."
+                if is_spam
+                else "Not detected."
+            )
 
-        if "hate" in self.comment.lower() or "hate speech" in response.lower():
-            self.spam_results["hate_speech"] = True
-            self.spam_reasons["hate_speech"] = (
-                "Comment contains hate speech keywords."
-                if "hate" in self.comment.lower()
-                else "AI detected hate speech."
-            )
-        else:
-            self.spam_results["hate_speech"] = False
-            self.spam_reasons["hate_speech"] = ""
-
-        if (
-            "private" in self.comment.lower()
-            or "private information" in response.lower()
-        ):
-            self.spam_results["private_info"] = True
-            self.spam_reasons["private_info"] = (
-                "Comment contains private information."
-                if "private" in self.comment.lower()
-                else "AI detected private information."
-            )
-        else:
-            self.spam_results["private_info"] = False
-            self.spam_reasons["private_info"] = ""
-
-        if "graphic" in self.comment.lower() or "graphic content" in response.lower():
-            self.spam_results["graphic_content"] = True
-            self.spam_reasons["graphic_content"] = (
-                "Comment contains graphic content."
-                if "graphic" in self.comment.lower()
-                else "AI detected graphic content."
-            )
-        else:
-            self.spam_results["graphic_content"] = False
-            self.spam_reasons["graphic_content"] = ""
-
-        if "violence" in self.comment.lower() or "violence" in response.lower():
-            self.spam_results["violence"] = True
-            self.spam_reasons["violence"] = (
-                "Comment contains violence related keywords."
-                if "violence" in self.comment.lower()
-                else "AI detected violence."
-            )
-        else:
-            self.spam_results["violence"] = False
-            self.spam_reasons["violence"] = ""
-
-        if (
-            "spam" in self.comment.lower()
-            or "scam" in self.comment.lower()
-            or "spam" in response.lower()
-            or "scam" in response.lower()
-        ):
-            self.spam_results["spam_or_scam"] = True
-            self.spam_reasons["spam_or_scam"] = (
-                "Comment contains spam keywords."
-                if "spam" in self.comment.lower() or "scam" in self.comment.lower()
-                else "AI detected spam or scam."
-            )
-        else:
-            self.spam_results["spam_or_scam"] = False
-            self.spam_reasons["spam_or_scam"] = ""
-
-        if "impersonate" in self.comment.lower() or "impersonation" in response.lower():
-            self.spam_results["impersonation"] = True
-            self.spam_reasons["impersonation"] = (
-                "Comment contains impersonation keywords."
-                if "impersonate" in self.comment.lower()
-                else "AI detected impersonation."
-            )
-        else:
-            self.spam_results["impersonation"] = False
-            self.spam_reasons["impersonation"] = ""
+            self.spam_results[category_name] = is_spam
+            self.spam_reasons[category_name] = reason
 
         with Session(engine) as session:
             history_entry = CommentHistory(
@@ -136,12 +70,16 @@ class State(rx.State):
                 video_description=self.video_description,
                 comment=self.comment,
                 sexual_content=self.spam_results["sexual_content"],
-                hate_speech=self.spam_results["hate_speech"],
-                private_info=self.spam_results["private_info"],
-                graphic_content=self.spam_results["graphic_content"],
-                violence=self.spam_results["violence"],
-                spam_or_scam=self.spam_results["spam_or_scam"],
-                impersonation=self.spam_results["impersonation"],
+                violence_or_abusive=self.spam_results["violence_or_abusive"],
+                hate_or_malicious=self.spam_results["hate_or_malicious"],
+                harassment_or_bullying=self.spam_results["harassment_or_bullying"],
+                harmful_or_dangerous_acts=self.spam_results[
+                    "harmful_or_dangerous_acts"
+                ],
+                misinformation=self.spam_results["misinformation"],
+                child_abuse=self.spam_results["child_abuse"],
+                terrorism_promotion=self.spam_results["terrorism_promotion"],
+                spam_or_confusion=self.spam_results["spam_or_confusion"],
             )
             session.add(history_entry)
             session.commit()
@@ -176,11 +114,6 @@ def test_page() -> rx.Component:
             rx.input(
                 placeholder="Video Title",
                 on_change=State.set_video_title,
-                width="100%",
-            ),
-            rx.text_area(
-                placeholder="Video Description",
-                on_change=State.set_video_description,
                 width="100%",
             ),
             rx.text_area(
@@ -219,7 +152,6 @@ def history_page() -> rx.Component:
                 State.comment_history,
                 lambda entry: rx.vstack(
                     rx.text(f"Video Title: {entry.video_title}"),
-                    rx.text(f"Video Description: {entry.video_description}"),
                     rx.text(f"Comment: {entry.comment}"),
                     rx.divider(),
                 ),
