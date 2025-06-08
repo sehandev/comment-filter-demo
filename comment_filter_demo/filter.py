@@ -15,16 +15,25 @@ class CommentFilter:
         ai_manager = AI_Manager(model_name=self.model_name)
         category_instance = Category()
 
-        prompt = category_instance.get_prompt(category, comment, video_title)
-        response = ai_manager.get_ai_response(prompt)
+        retries = 0
+        max_retries = 3
+        reason = ""
+        is_spam = False
 
-        is_spam = "true" in response.lower() or "yes" in response.lower()
-        if "Reason: " in response:
-            reason = response.split("Reason: ")[1].strip()
-        else:
-            reason = (
-                response.strip()
-            )  # Use the whole response if 'Reason: ' is not found
+        while retries < max_retries:
+            prompt = category_instance.get_prompt(category, comment, video_title)
+            response = ai_manager.get_ai_response(prompt)
+
+            is_spam = "true" in response.lower() or "yes" in response.lower()
+            if "Reason: " in response:
+                reason = response.split("Reason: ")[1].strip()
+            else:
+                reason = response.strip()
+
+            if not is_spam or len(reason.split()) >= 3:
+                break
+            retries += 1
+
         return is_spam, reason
 
 

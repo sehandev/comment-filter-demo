@@ -179,23 +179,22 @@ def index() -> rx.Component:
     return rx.container(
         rx.color_mode.button(position="top-right"),
         rx.vstack(
-            rx.heading("Comment Filter App", size="9"),
-            rx.link(rx.button("Go to Test Page"), href="/test"),
+            rx.heading("Video Comment Moderation System", size="8"),
+            rx.link(rx.button("Go to VCMS Page"), href="/vcms"),
             rx.link(rx.button("Go to History Page"), href="/history"),
             spacing="5",
             justify="center",
             min_height="85vh",
         ),
-        rx.logo(),
     )
 
 
-@rx.page(route="/test")
+@rx.page(route="/vcms")
 def test_page() -> rx.Component:
     return rx.container(
         rx.color_mode.button(position="top-right"),
         rx.vstack(
-            rx.heading("Test Page", size="9"),
+            rx.heading("VCMS Page", size="9"),
             rx.input(
                 placeholder="Video Title",
                 on_change=State.set_video_title,
